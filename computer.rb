@@ -34,14 +34,14 @@ class Computer
       0.upto(7) do |x|
         0.upto(7) do |y|
           next if board.board_state[x][y] == other_player
-          count += board.count_left(x, y, player)
-          count += board.count_right(x, y, player)
-          count += board.count_up(x, y, player)
-          count += board.count_down(x, y, player)
-          count += board.count_up_left(x, y, player)
-          count += board.count_down_right(x, y, player)
-          count += board.count_up_right(x, y, player)
-          count += board.count_down_left(x, y, player)
+          count += board.count(x, y, :left, :none, player)
+          count += board.count(x, y, :right, :none, player)
+          count += board.count(x, y, :none, :up, player)
+          count += board.count(x, y, :none, :down, player)
+          count += board.count(x, y, :left, :up, player)
+          count += board.count(x, y, :right, :down, player)
+          count += board.count(x, y, :right, :up, player)
+          count += board.count(x, y, :left, :down, player)
         end
       end
       count

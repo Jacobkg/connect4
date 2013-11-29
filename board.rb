@@ -35,79 +35,38 @@ class Board
     Board.new(new_board_state)
   end
 
-  def count_left(x, y, player)
-    return 0 if x <= 0 || @board_state[x - 1][y] != player
-    return 1 + count_left(x - 1, y, player)
-  end
-
-  def count_right(x, y, player)
-    return 0 if x >= 7 || @board_state[x + 1][y] != player
-    return 1 + count_right(x + 1, y, player)
-  end
-
-  def count_up(x, y, player)
-    return 0 if y >= 7 || @board_state[x][y + 1] != player
-    return 1 + count_up(x, y + 1, player)
-  end
-
-  def count_down(x, y, player)
-    return 0 if y <= 0 || @board_state[x][y - 1] != player
-    return 1 + count_down(x, y - 1, player)
-  end
-
-  def count_up_left(x, y, player)
-    return 0 if x <= 0 || y >= 7 || @board_state[x - 1][y + 1] != player
-    return 1 + count_up_left(x - 1, y + 1, player)
-  end
-
-  def count_up_right(x, y, player)
-    return 0 if x >= 7 || y >= 7 || @board_state[x + 1][y + 1] != player
-    return 1 + count_up_right(x + 1, y + 1, player)
-  end
-
-  def count_down_left(x, y, player)
-    return 0 if x <= 0 || y <= 0 || @board_state[x - 1][y - 1] != player
-    return 1 + count_down_left(x - 1, y - 1, player)
-  end
-
-  def count_down_right(x, y, player)
-    return 0 if x >= 7 || y <= 0 || @board_state[x + 1][y - 1] != player
-    return 1 + count_down_right(x + 1, y - 1, player)
-  end
-
-  def count_max_in_a_row
-    max_count = {"X" => 0, "O" => 0}
-    0.upto(7) do |x|
-      0.upto(7) do |y|
-        player = board_state[x][y]
-        next if player == "-"
-        left_count = count_left(x, y, player)
-        right_count = count_right(x, y, player)
-        up_count = count_up(x, y, player)
-        down_count = count_down(x, y, player)
-        up_left_count = count_up_left(x, y, player)
-        down_right_count = count_down_right(x, y, player)
-        up_right_count = count_up_right(x, y, player)
-        down_left_count = count_down_left(x, y, player)
-        best_count = [left_count + right_count + 1, up_count + down_count + 1,
-                      up_left_count + down_right_count + 1, up_right_count + down_left_count + 1].max
-        if best_count > max_count[player]
-          max_count[player] = best_count
-        end
-      end
-    end
-    max_count
+  def count(x, y, horiz, vert, player)
+    new_x = x
+    new_x = x + 1 if horiz == :right
+    new_x = x - 1 if horiz == :left
+    new_y = y
+    new_y = y + 1 if vert == :up
+    new_y = y - 1 if vert == :down
+    return 0 if new_x < 0 || new_x > 7 || new_y > 7 || new_y < 0 || @board_state[new_x][new_y] != player
+    return 1 + count(new_x, new_y, horiz, vert, player)
   end
 
   def winner
-    count_hash = count_max_in_a_row
-    if count_hash["X"] >= 4
-      return "X"
-    elsif count_hash["O"] >= 4
-      return "O"
-    else
-      return nil
+    0.upto(7) do |x|
+      0.upto(7) do |y|
+        player = @board_state[x][y]
+        next if player == "-"
+        left_count = count(x, y, :left, :none, player)
+        right_count = count(x, y, :right, :none, player)
+        up_count = count(x, y, :none, :up, player)
+        down_count = count(x, y, :none, :down, player)
+        up_left_count = count(x, y, :left, :up, player)
+        down_right_count = count(x, y, :right, :down, player)
+        up_right_count = count(x, y, :right, :up, player)
+        down_left_count = count(x, y, :left, :down, player)
+        best_count = [left_count + right_count + 1, up_count + down_count + 1,
+                      up_left_count + down_right_count + 1, up_right_count + down_left_count + 1].max
+        if best_count >= 4
+          return player
+        end
+      end
     end
+    return nil
   end
 
 end
