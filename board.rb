@@ -56,12 +56,12 @@ class Board
   end
 
   def count_up_left(x, y, player)
-    return 0 if x <= 0 || @board_state[x - 1][y + 1] != player
+    return 0 if x <= 0 || y >= 7 || @board_state[x - 1][y + 1] != player
     return 1 + count_up_left(x - 1, y + 1, player)
   end
 
   def count_up_right(x, y, player)
-    return 0 if x >= 7 || @board_state[x + 1][y + 1] != player
+    return 0 if x >= 7 || y >= 7 || @board_state[x + 1][y + 1] != player
     return 1 + count_up_right(x + 1, y + 1, player)
   end
 
@@ -71,7 +71,7 @@ class Board
   end
 
   def count_down_right(x, y, player)
-    return 0 if x >= 7 || y >= 7 || @board_state[x + 1][y - 1] != player
+    return 0 if x >= 7 || y <= 0 || @board_state[x + 1][y - 1] != player
     return 1 + count_down_right(x + 1, y - 1, player)
   end
 
