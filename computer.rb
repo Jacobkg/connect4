@@ -15,6 +15,24 @@ class Computer
     best_move
   end
 
+  def heuristic_score(board, player = "O")
+    count = 0
+    0.upto(7) do |x|
+      0.upto(7) do |y|
+        next unless board.board_state[x][y] == other_player(player)
+        count += board.count_left(x, y, player)
+        count += board.count_right(x, y, player)
+        count += board.count_up(x, y, player)
+        count += board.count_down(x, y, player)
+        count += board.count_up_left(x, y, player)
+        count += board.count_down_right(x, y, player)
+        count += board.count_up_right(x, y, player)
+        count += board.count_down_left(x, y, player)
+      end
+    end
+    count
+  end
+
   private
 
     def minimax(board, depth, alpha, beta, maximizing_player)
@@ -45,23 +63,8 @@ class Computer
       return -999
     end
 
-    def heuristic_score(board)
-      count = 0
-      0.upto(7) do |x|
-        0.upto(7) do |y|
-          player = "O"
-          next unless board.board_state[x][y] == "X"
-          count += board.count_left(x, y, player)
-          count += board.count_right(x, y, player)
-          count += board.count_up(x, y, player)
-          count += board.count_down(x, y, player)
-          count += board.count_up_left(x, y, player)
-          count += board.count_down_right(x, y, player)
-          count += board.count_up_right(x, y, player)
-          count += board.count_down_left(x, y, player)
-        end
-      end
-      count
+    def other_player(player)
+      player == "X" ? "O" : "X"
     end
 
 end

@@ -8,8 +8,10 @@ def request_user_move
 end
 
 board = Board.new
-board = board.drop_piece(4, "O")
+#board = board.drop_piece(4, "O")
 loop do
+  puts "Heuristic Score for O: #{Computer.new.heuristic_score(board, "O")}"
+  puts "Heuristic Score for X: #{Computer.new.heuristic_score(board, "X")}"
   board.print
   col = request_user_move
   board = board.drop_piece col, "X"
