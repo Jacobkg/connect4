@@ -20,10 +20,6 @@ class Board
      @board_state[4].dup, @board_state[5].dup, @board_state[6].dup, @board_state[7].dup]
   end
 
-  def copy
-    Board.new(board_state)
-  end
-
   def available_moves
     (0..7).to_a.select {|n| @board_state[n][7] == '-'}
   end
