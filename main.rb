@@ -1,24 +1,4 @@
-board = [["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8]
-
-def print_board(board)
-  7.downto(0) do |i|
-    0.upto(7) do |j|
-      print board[j][i]
-    end
-    print "\n"
-  end
-  puts [1,2,3,4,5,6,7,8].join
-end
-
-def copy_board(board)
-  new_board = [["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8,["-"] * 8]
-  0.upto(7) do |i|
-    0.upto(7) do |j|
-      new_board[i][j] = board[i][j]
-    end
-  end
-  new_board
-end
+require_relative "./board"
 
 def request_user_move
   puts "Choose a column (1-8): "
@@ -26,42 +6,27 @@ def request_user_move
   col = move - 1
 end
 
-def drop_piece!(board, column, player)
-  0.upto(7) do |i|
-    if board[column][i] == "-"
-      board[column][i] = player
-      break
-    end
-  end
-end
-
-def available_moves(board)
-  (0..7).to_a.select {|n| board[n][7] == '-'}
-end
-
 def score(board)
-  winner = winner(board)
-  return 0 if winner.nil?
-  return 1 if winner == "O"
-  return -1
+  winner = board.winner
+  return heuristic_score(board) if winner.nil?
+  return 999 if winner == "O"
+  return -999
 end
 
 def minimax(board, depth, alpha, beta, maximizing_player)
-  if depth == 0 || winner(board)
+  if depth == 0 || board.winner
     return score(board)
   end
   if maximizing_player
-    available_moves(board).each do |possible_move|
-      test_board = copy_board(board)
-      drop_piece! test_board, possible_move, "O"
+    board.available_moves.each do |possible_move|
+      test_board = board.drop_piece possible_move, "O"
       alpha = [alpha, minimax(test_board, depth - 1, alpha, beta, false)].max
       break if beta <= alpha
     end
     return alpha
   else
-    available_moves(board).each do |possible_move|
-      test_board = copy_board(board)
-      drop_piece! test_board, possible_move, "X"
+    board.available_moves.each do |possible_move|
+      test_board = board.drop_piece possible_move, "X"
       beta = [beta, minimax(test_board, depth - 1, alpha, beta, true)].min
       break if beta <= alpha
     end
@@ -72,10 +37,9 @@ end
 def compute_computer_move(board)
   best_move = nil
   best_score = -1_000_000
-  available_moves(board).each do |possible_move|
-    test_board = copy_board(board)
-    drop_piece! test_board, possible_move, "O"
-    score = minimax(test_board, 6, -1_000, 1_000, false)
+  board.available_moves.each do |possible_move|
+    test_board = board.drop_piece possible_move, "O"
+    score = minimax(test_board, 5, -1_000, 1_000, false)
     puts "Move #{possible_move} has score #{score}"
     if score > best_score
       best_move = possible_move
@@ -85,91 +49,35 @@ def compute_computer_move(board)
   best_move
 end
 
-def count_left(board, x, y, player)
-  return 0 if x <= 0 || board[x - 1][y] != player
-  return 1 + count_left(board, x - 1, y, player)
-end
-
-def count_right(board, x, y, player)
-  return 0 if x >= 7 || board[x + 1][y] != player
-  return 1 + count_right(board, x + 1, y, player)
-end
-
-def count_up(board, x, y, player)
-  return 0 if y >= 7 || board[x][y + 1] != player
-  return 1 + count_up(board, x, y + 1, player)
-end
-
-def count_down(board, x, y, player)
-  return 0 if y <= 0 || board[x][y - 1] != player
-  return 1 + count_down(board, x, y - 1, player)
-end
-
-def count_up_left(board, x, y, player)
-  return 0 if x <= 0 || board[x - 1][y + 1] != player
-  return 1 + count_up_left(board, x - 1, y + 1, player)
-end
-
-def count_up_right(board, x, y, player)
-  return 0 if x >= 7 || board[x + 1][y + 1] != player
-  return 1 + count_up_right(board, x + 1, y + 1, player)
-end
-
-def count_down_left(board, x, y, player)
-  return 0 if x <= 0 || y <= 0 || board[x - 1][y - 1] != player
-  return 1 + count_down_left(board, x - 1, y - 1, player)
-end
-
-def count_down_right(board, x, y, player)
-  return 0 if x >= 7 || y >= 7 || board[x + 1][y - 1] != player
-  return 1 + count_down_right(board, x + 1, y - 1, player)
-end
-
-def count_max_in_a_row(board)
-  max_count = {"X" => 0, "O" => 0}
+def heuristic_score(board)
+  count = 0
   0.upto(7) do |x|
     0.upto(7) do |y|
-      player = board[x][y]
-      next if player == "-"
-      left_count = count_left(board, x, y, player)
-      right_count = count_right(board, x, y, player)
-      up_count = count_up(board, x, y, player)
-      down_count = count_down(board, x, y, player)
-      up_left_count = count_up_left(board, x, y, player)
-      down_right_count = count_down_right(board, x, y, player)
-      up_right_count = count_up_right(board, x, y, player)
-      down_left_count = count_down_left(board, x, y, player)
-      best_count = [left_count + right_count + 1, up_count + down_count + 1,
-                    up_left_count + down_right_count + 1, up_right_count + down_left_count + 1].max
-      if best_count > max_count[player]
-        max_count[player] = best_count
-      end
+      player = "O"
+      next unless board.board_state[x][y] == "X"
+      count += board.count_left(x, y, player)
+      count += board.count_right(x, y, player)
+      count += board.count_up(x, y, player)
+      count += board.count_down(x, y, player)
+      count += board.count_up_left(x, y, player)
+      count += board.count_down_right(x, y, player)
+      count += board.count_up_right(x, y, player)
+      count += board.count_down_left(x, y, player)
     end
   end
-  max_count
+  count
 end
 
-def winner(board)
-  count_hash = count_max_in_a_row(board)
-  if count_hash["X"] >= 4
-    return "X"
-  elsif count_hash["O"] >= 4
-    return "O"
-  else
-    return nil
-  end
-end
-
-drop_piece! board, 4, "O"
+board = Board.new
+board = board.drop_piece(4, "O")
 loop do
-  print_board board
+  board.print
   col = request_user_move
-  drop_piece! board, col, "X"
-  break if winner(board)
-  drop_piece! board, compute_computer_move(board), "O"
-  break if winner(board)
-  count_hash = count_max_in_a_row(board)
+  board = board.drop_piece col, "X"
+  break if board.winner
+  board = board.drop_piece compute_computer_move(board), "O"
+  break if board.winner
 end
 
-print_board board
-puts "And the winner is: #{winner(board)}"
+board.print
+puts "And the winner is: #{board.winner}"
